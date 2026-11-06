@@ -28,10 +28,10 @@ Bạn sẽ thấy output so sánh phản hồi của `gpt-6.1-terra` và `gpt-6-
 Gọi `call_openai` với các giá trị temperature 0.0, 0.5, 1.0 và 1.5 sử dụng prompt **"Hãy kể cho tôi một sự thật thú vị về Việt Nam."** (nhớ gửi `reasoning_effort="none"`: model GPT-6 chỉ nhận `temperature` khi tắt suy luận)
 
 **Bạn nhận thấy quy luật gì qua bốn phản hồi?** (2–3 câu)
-> *Câu trả lời của bạn*
+> Khi temperature = 0.0, phản hồi gần như xác định và tập trung vào một sự thật “an toàn”, ít biến thiên. Ở 0.5–1.0, câu trả lời đa dạng hơn, vẫn mạch lạc nhưng chọn chi tiết khác nhau giữa các lần chạy. Ở 1.5, văn phong tự do và bất ngờ hơn, đôi khi lan man hoặc kém chính xác hơn vì model lấy mẫu từ phần đuôi phân phối token.
 
 **Bạn sẽ đặt temperature bao nhiêu cho chatbot hỗ trợ khách hàng, và tại sao?**
-> *Câu trả lời của bạn*
+> Nên đặt khoảng 0.2–0.4. Chatbot hỗ trợ cần câu trả lời ổn định, chính xác và dễ dự đoán; temperature thấp giảm rủi ro bịa thông tin và giữ giọng điệu nhất quán. Có thể nâng nhẹ (≈0.5) nếu muốn câu trả lời tự nhiên hơn, nhưng không nên vượt quá 0.7 trong ngữ cảnh hỗ trợ khách hàng.
 
 ---
 
@@ -39,26 +39,31 @@ Gọi `call_openai` với các giá trị temperature 0.0, 0.5, 1.0 và 1.5 sử
 Xem xét kịch bản: 10.000 người dùng hoạt động mỗi ngày, mỗi người thực hiện 3 lần gọi API, mỗi lần trung bình ~350 token.
 
 **Ước tính xem `gpt-6.1-terra` đắt hơn `gpt-6-luna` bao nhiêu lần cho workload này** (giá 11/2026: terra $1.00 / $5.00, luna $0.10 / $0.50 mỗi 1M token input / output):
-> *Câu trả lời của bạn*
+> Tổng request/ngày = 10.000 × 3 = 30.000. Giả sử ~350 token/request (đơn giản hóa, coi phần lớn là output hoặc dùng tỷ lệ input/output tương đương giữa hai model), chi phí tỷ lệ thuận với đơn giá token.  
+> - Terra: input $1.00 + output $5.00 → trung bình khoảng $3/1M token nếu input ≈ output, hoặc cao hơn nếu output chiếm phần lớn.  
+> - Luna: input $0.10 + output $0.50 → cùng tỷ lệ thì khoảng $0.30/1M token.  
+> Hệ số chênh lệch ≈ **10×** (cả input và output terra đều đắt hơn luna đúng 10 lần: 1.00/0.10 và 5.00/0.50). Với 30.000 request × 350 token ≈ 10,5M token/ngày, chi phí terra ≈ 10 lần luna bất kể mix input/output.
 
 **Mô tả một trường hợp mà chi phí cao hơn của `gpt-6.1-terra` là xứng đáng, và một trường hợp `gpt-6-luna` là lựa chọn tốt hơn:**
-> *Câu trả lời của bạn*
+> **Terra xứng đáng:** soạn thảo báo cáo pháp lý, tóm tắt hồ sơ y tế, hoặc sinh code quan trọng — nơi sai một chi tiết có thể gây hậu quả lớn, cần độ chính xác và suy luận sâu.  
+> **Luna tốt hơn:** chatbot FAQ, phân loại ticket đơn giản, gợi ý tìm kiếm, hoặc tạo nội dung marketing số lượng lớn — volume cao, yêu cầu chất lượng “đủ dùng”, tối ưu chi phí quan trọng hơn độ tinh tế tối đa.
 
 ---
 
 ### Bài tập 2.3 — Trải Nghiệm Người Dùng với Streaming
 **Streaming quan trọng nhất trong trường hợp nào, và khi nào thì non-streaming lại phù hợp hơn?** (1 đoạn văn)
-> *Câu trả lời của bạn*
+> Streaming quan trọng nhất với chatbot hội thoại và công cụ viết dài (soạn email, code, bài viết): người dùng thấy token xuất hiện ngay, cảm giác phản hồi nhanh và có thể dừng sớm nếu nội dung lệch hướng. Non-streaming phù hợp hơn khi cần kết quả đầy đủ trước khi xử lý tiếp (ví dụ: parse JSON, chấm điểm, pipeline batch), hoặc khi UI không hỗ trợ hiển thị từng phần — lúc đó chờ một lần rồi nhận toàn bộ câu trả lời gọn và dễ xử lý hơn.
 
+---
 
 ## Danh Sách Kiểm Tra Nộp Bài
-- [ ] Tất cả tests pass: `pytest tests/test_solution.py -v`
-- [ ] `call_openai` đã triển khai và kiểm thử
-- [ ] `call_openai_mini` đã triển khai và kiểm thử
-- [ ] `compare_models` đã triển khai và kiểm thử
-- [ ] `streaming_chatbot` đã triển khai và kiểm thử
-- [ ] `retry_with_backoff` đã triển khai và kiểm thử
-- [ ] `batch_compare` đã triển khai và kiểm thử
-- [ ] `format_comparison_table` đã triển khai và kiểm thử
-- [ ] `exercises.md` đã điền đầy đủ
+- [x] Tất cả tests pass: `pytest tests/test_solution.py -v`
+- [x] `call_openai` đã triển khai và kiểm thử
+- [x] `call_openai_mini` đã triển khai và kiểm thử
+- [x] `compare_models` đã triển khai và kiểm thử
+- [x] `streaming_chatbot` đã triển khai và kiểm thử
+- [x] `retry_with_backoff` đã triển khai và kiểm thử
+- [x] `batch_compare` đã triển khai và kiểm thử
+- [x] `format_comparison_table` đã triển khai và kiểm thử
+- [x] `exercises.md` đã điền đầy đủ
 - [ ] Sao chép bài làm vào folder `solution` và đặt tên theo quy định 
